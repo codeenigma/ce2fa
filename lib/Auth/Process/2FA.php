@@ -6,7 +6,7 @@
  * @author Salvador Molina <salva.momo@gmail.com>
  * @package SimpleSAMLphp
  */
-class sspmod_celdap2fa_Auth_Process_2FA extends sspmod_ldap_Auth_Process_BaseFilter
+class sspmod_ce2fa_Auth_Process_2FA extends sspmod_ldap_Auth_Process_BaseFilter
 {
 
 	const AdminGroupSuffix = 'Admins';
