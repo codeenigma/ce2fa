@@ -62,7 +62,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
     $attributes =& $request['Attributes'];
 
     if ($this->filterEnabled) {
-      $username = $attributes['uid'];
+      $username = is_array($attributes['uid']) ? $attributes['uid'][0] : $attributes['uid'];
 
       if ($this->userRequires2FA($username, $attributes) === FALSE) {
         $request['sspmod_linotp2_Auth_Process_OTP'] = [

@@ -43,7 +43,7 @@ class Ldap {
 
     // Log the LDAP connection
     Logger::debug(
-      $this->title . 'Connecting to LDAP server;' .
+      'CE2FA Process Filter Plugin ' . 'Connecting to LDAP server;' .
       ' Hostname: ' . $hostname .
       ' Port: ' . $port .
       ' Enable TLS: ' . ($enable_tls ? 'Yes' : 'No') .
