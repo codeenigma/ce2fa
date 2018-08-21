@@ -36,9 +36,12 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
   public function __construct($config, $reserved) {
     parent::__construct($config, $reserved);
 
-    $cfg                 = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
+    $cfg = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
     $this->filterEnabled = $cfg->getBoolean('proc_filter.enabled');
-    $this->initLdap($cfg);
+
+    if ($this->filterEnabled) {
+      $this->initLdap($cfg);
+    }
   }
 
   /**
