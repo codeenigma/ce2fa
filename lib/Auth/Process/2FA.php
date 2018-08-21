@@ -1,127 +1,149 @@
 <?php
 
+namespace SimpleSAML\Module\CE2FA\Auth\Process;
+
+use SimpleSAML\Module\CE2FA\Auth\Ldap\Ldap;
+use SimpleSAML_Auth_ProcessingFilter;
+
 /**
  * Filter to manipulate request in order to enforce the user to pass 2fa.
  *
  * @author Salvador Molina <salva.momo@gmail.com>
  * @package SimpleSAMLphp
  */
-class sspmod_ce2fa_Auth_Process_2FA extends sspmod_ldap_Auth_Process_BaseFilter
-{
+class sspmod_ce2fa_Auth_Process_2FA extends SimpleSAML_Auth_ProcessingFilter {
 
-	const AdminGroupSuffix = 'Admins';
+  const AdminGroupSuffix = 'Admins';
 
-	/**
-	 * Initialize this filter.
-	 *
-	 * @param array $config Configuration information about this filter.
-	 * @param mixed $reserved For future use.
-	 */
-	public function __construct($config, $reserved)
-	{
-		parent::__construct($config, $reserved);
-	}
+  /**
+   * @var \SimpleSAML\Module\CE2FA\Auth\Ldap\Ldap
+   */
+  private $ldap;
 
-	/**
-	 * Add attributes from an LDAP server.
-	 *
-	 * @param array &$request The current request
-	 */
-	public function process(&$request)
-	{
-		assert(is_array($request));
-		assert(array_key_exists('Attributes', $request));
+  /**
+   * @var boolean
+   */
+  private $filterEnabled;
 
-		$attributes =& $request['Attributes'];
+  /**
+   * 2FA constructor.
+   *
+   * @param array $config The configuration of this authproc.
+   * @param mixed $reserved
+   *
+   * @throws \Exception
+   */
+  public function __construct($config, $reserved) {
+    parent::__construct($config, $reserved);
 
-		// Check if 2fa-enforcement is enabled.
-		$twofa_enforcement_enabled = true;
+    $cfg = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
+    $this->filterEnabled = $cfg->getBoolean('proc_filter.enabled');
+    $this->initLdap($config);
+  }
 
-		if (!$twofa_enforcement_enabled) {
-			return;
-		}
+  /**
+   * @param \SimpleSAML_Configuration $config
+   *
+   * @throws \Exception
+   */
+  private function initLdap(\SimpleSAML_Configuration $config) {
+    $this->ldap = Ldap::fromConfig($config);
+  }
 
-		// Get username from request.
-		$username = $attributes['uid'];
-		if ($this->userRequires2FA($username, $attributes) == false) {
-			$request['sspmod_linotp2_Auth_Process_OTP'] = ['skip_check' => true];
-		}
+  /**
+   * Add attributes from an LDAP server.
+   *
+   * @param array &$request The current request
+   */
+  public function process(&$request) {
+    assert(is_array($request));
+    assert(array_key_exists('Attributes', $request));
 
-		return;
-	}
+    $attributes =& $request['Attributes'];
 
-	/**
-	 * Checks if the user authenticating should be challenged with 2fa.
-	 *
-	 * @param string $username
-	 *	The username for which to check if 2fa is needed.
-	 *
-	 * @return bool
-	 * 	true if the user should pass 2fa, false otherwise.
-	 */
-	private function userRequires2FA($username, $request_attr) {
-		if ($this->userIsSuperUser($request_attr)) {
-			return true;
-		}
+    if ($this->filterEnabled) {
+      $username = $attributes['uid'];
 
-		if ($this->userIsGroupAdmin($username)) {
-			return true;
-		}
+      if ($this->userRequires2FA($username, $attributes) === FALSE) {
+        $request['sspmod_linotp2_Auth_Process_OTP'] = [
+          'skip_check' => TRUE,
+        ];
+      }
+    }
 
-		return false;
-	}
+    return;
+  }
 
-	/**
-	 * Checks if a user is considered a superuser, based on LDAP data.
-	 *
-	 * @param array $request_attr
-	 *	The current user attributes array (from the request passed to process()).
-	 * @return bool
-	 * 	true if the user is a superuser, false otherwise.
-	 */
-	private function userIsSuperUser($request_attr) {
-		return isset($request_attr['employeeType']) && ($request_attr['employeeType'] == 'superuser');
-	}
+  /**
+   * Checks if the user authenticating should be challenged with 2fa.
+   *
+   * @param string $username
+   *  The username for which to check if 2fa is needed.
+   *
+   * @return bool
+   *  true if the user should pass 2fa, false otherwise.
+   */
+  private function userRequires2FA($username, $request_attr) {
+    if ($this->userIsSuperUser($request_attr)) {
+      return TRUE;
+    }
 
-	/**
-	 * Checks if a user is member of any "admin" group.
-	 *
-	 * @param string $username
-	 * 	The username of the user for which to check belonging to admin groups.
-	 *
-	 * @return bool
-	 * 	true if the user is considered a group admin, false otherwise.
-	 */
-	private function userIsGroupAdmin($username) {
-		$user_is_group_admin = false;
+    if ($this->userIsGroupAdmin($username)) {
+      return TRUE;
+    }
 
-		/* @var \SimpleSAML_Auth_LDAP $ldap */
-		$ldap = $this->getLdap();
+    return FALSE;
+  }
 
-		$filter = '(&(objectClass=posixGroup)(memberUid=' . $username . '))';
-		try {
-			$ldap_groups = $ldap->searchformultiple('ou=Groups,dc=codeenigma,dc=com', $filter, array('cn'));
-		}
-		catch (\Exception $e) {
-			// If groups can't be retrieved, assumed user is not group admin.
-			return false;
-		}
+  /**
+   * Checks if a user is considered a superuser, based on LDAP data.
+   *
+   * @param array $request_attr
+   *  The current user attributes array (from the request passed to process()).
+   *
+   * @return bool
+   *  true if the user is a superuser, false otherwise.
+   */
+  private function userIsSuperUser($request_attr) {
+    return isset($request_attr['employeeType']) && ($request_attr['employeeType'] == 'superuser');
+  }
 
-		$user_groups = array();
-		foreach ($ldap_groups as $key => $group_info) {
-			if (is_int($key) && isset($group_info["cn"][0])) {
-				$user_groups[] = $group_info["cn"][0];
-			}
-		}
+  /**
+   * Checks if a user is member of any "admin" group.
+   *
+   * @param string $username
+   *  The username of the user for which to check belonging to admin groups.
+   *
+   * @return bool
+   *  true if the user is considered a group admin, false otherwise.
+   */
+  private function userIsGroupAdmin($username) {
+    $user_is_group_admin = FALSE;
 
-		foreach ($user_groups as $group) {
-			if (in_array($group . self::AdminGroupSuffix, $user_groups)) {
-				$user_is_group_admin = true;
-				break;
-			}
-		}
+    $filter = '(&(objectClass=posixGroup)(memberUid=' . $username . '))';
+    try {
+      $ldap_groups = $this->ldap->searchformultiple('ou=Groups,dc=codeenigma,dc=com', $filter, ['cn']);
+    }
+    catch (\Exception $e) {
+      // If groups can't be retrieved, assume user is not group admin.
+      return FALSE;
+    }
 
-		return $user_is_group_admin;
-	}
+    $user_groups = [];
+    foreach ($ldap_groups as $key => $group_info) {
+      if (is_int($key) && isset($group_info["cn"][0])) {
+        $user_groups[] = $group_info["cn"][0];
+      }
+    }
+
+    foreach ($user_groups as $group) {
+      if (in_array($group . self::AdminGroupSuffix, $user_groups)) {
+        $user_is_group_admin = TRUE;
+        break;
+      }
+    }
+
+    return $user_is_group_admin;
+  }
 
 }
