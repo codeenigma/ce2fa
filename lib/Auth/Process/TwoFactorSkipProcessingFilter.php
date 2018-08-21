@@ -2,7 +2,7 @@
 
 namespace SimpleSAML\Module\CE2FA\Auth\Process;
 
-use SimpleSAML\Module\CE2FA\Auth\Ldap\Ldap;
+use CE2FA\Auth\Ldap\Ldap;
 use SimpleSAML_Auth_ProcessingFilter;
 
 /**
@@ -11,12 +11,12 @@ use SimpleSAML_Auth_ProcessingFilter;
  * @author Salvador Molina <salva.momo@gmail.com>
  * @package SimpleSAMLphp
  */
-class sspmod_ce2fa_Auth_Process_2FA extends SimpleSAML_Auth_ProcessingFilter {
+class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
 
   const AdminGroupSuffix = 'Admins';
 
   /**
-   * @var \SimpleSAML\Module\CE2FA\Auth\Ldap\Ldap
+   * @var \CE2FA\Auth\Ldap\Ldap
    */
   private $ldap;
 
@@ -38,7 +38,7 @@ class sspmod_ce2fa_Auth_Process_2FA extends SimpleSAML_Auth_ProcessingFilter {
 
     $cfg = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
     $this->filterEnabled = $cfg->getBoolean('proc_filter.enabled');
-    $this->initLdap($config);
+    $this->initLdap($cfg);
   }
 
   /**

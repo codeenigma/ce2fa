@@ -12,6 +12,11 @@
 			"email" : "salva.momo@gmail.com"
 		}
 	],
+	"autoload": {
+		"psr-4": {
+			"CE2FA\\": "lib"
+		}
+	},
 	"require" : {
 		"simplesamlphp/composer-module-installer" : "~1.1.5"
 	}

@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleSAML\Module\CE2FA\Auth\Ldap;
+namespace CE2FA\Auth\Ldap;
 
 use SimpleSAML\Logger;
 use SimpleSAML_Auth_LDAP;
