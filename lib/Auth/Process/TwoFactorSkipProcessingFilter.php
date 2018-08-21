@@ -123,8 +123,11 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    */
   private function userIsGroupAdmin($username) {
     $user_is_group_admin = FALSE;
-
-    $filter = '(&(objectClass=posixGroup)(memberUid=' . $username . '))';
+    $filter = [
+      'objectClass' => 'posixGroup',
+      'memberUid' => $username,
+    ];
+    
     try {
       $ldap_groups = $this->ldap->searchformultiple('ou=Groups,dc=codeenigma,dc=com', $filter, ['cn']);
     } catch (\Exception $e) {
