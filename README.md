@@ -29,7 +29,7 @@ If you installed SimpleSAMLphp using composer, you may simply add this to your r
     ],
 ```
 
-Then run `composer require codeenigma/simplesamlphp-module-ce2fa dev`.
+Then run `composer require codeenigma/simplesamlphp-module-ce2fa dev-master`.
 
 ## Configuration
 
