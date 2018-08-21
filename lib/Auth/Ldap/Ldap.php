@@ -69,17 +69,6 @@ class Ldap {
    * @throws \Exception
    */
   public static function fromConfig(SimpleSAML_Configuration $config) {
-    //    $expected = [
-    //      'ldap.hostname',
-    //      'ldap.port',
-    //      'ldap.enable_tls',
-    //      'ldap.debug',
-    //      'ldap.referrals',
-    //      'ldap.timeout',
-    //      'ldap.username',
-    //      'ldap.password',
-    //    ];
-
     return new self(
       $config->getString('ldap.hostname'),
       $config->getInteger('ldap.port', 389),
