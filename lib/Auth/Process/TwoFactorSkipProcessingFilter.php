@@ -36,7 +36,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
   public function __construct($config, $reserved) {
     parent::__construct($config, $reserved);
 
-    $cfg = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
+    $cfg                 = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
     $this->filterEnabled = $cfg->getBoolean('proc_filter.enabled');
     $this->initLdap($cfg);
   }
@@ -59,12 +59,11 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
     assert(is_array($request));
     assert(array_key_exists('Attributes', $request));
 
-    $attributes =& $request['Attributes'];
-
     if ($this->filterEnabled) {
-      $username = is_array($attributes['uid']) ? $attributes['uid'][0] : $attributes['uid'];
+      $ldap_attributes = $this->extractLdapAttributesFromRequest($request['Attributes']);
+      $username = $ldap_attributes['uid'];
 
-      if ($this->userRequires2FA($username, $attributes) === FALSE) {
+      if ($this->userRequires2FA($username, $ldap_attributes) === FALSE) {
         $request['sspmod_linotp2_Auth_Process_OTP'] = [
           'skip_check' => TRUE,
         ];
@@ -79,12 +78,14 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    *
    * @param string $username
    *  The username for which to check if 2fa is needed.
+   * @param array $ldap_attributes
+   *  Array of normalized LDAP Attributes
    *
    * @return bool
    *  true if the user should pass 2fa, false otherwise.
    */
-  private function userRequires2FA($username, $request_attr) {
-    if ($this->userIsSuperUser($request_attr)) {
+  private function userRequires2FA($username, $ldap_attributes) {
+    if ($this->userIsSuperUser($ldap_attributes)) {
       return TRUE;
     }
 
@@ -98,14 +99,14 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
   /**
    * Checks if a user is considered a superuser, based on LDAP data.
    *
-   * @param array $request_attr
-   *  The current user attributes array (from the request passed to process()).
+   * @param array $ldap_attributes
+   *  A normalized array of the user's LDAP attributes
    *
    * @return bool
    *  true if the user is a superuser, false otherwise.
    */
-  private function userIsSuperUser($request_attr) {
-    return isset($request_attr['employeeType']) && ($request_attr['employeeType'] == 'superuser');
+  private function userIsSuperUser($ldap_attributes) {
+    return isset($ldap_attributes['employeeType']) && ($ldap_attributes['employeeType'] === 'superuser');
   }
 
   /**
@@ -123,8 +124,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
     $filter = '(&(objectClass=posixGroup)(memberUid=' . $username . '))';
     try {
       $ldap_groups = $this->ldap->searchformultiple('ou=Groups,dc=codeenigma,dc=com', $filter, ['cn']);
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       // If groups can't be retrieved, assume user is not group admin.
       return FALSE;
     }
@@ -144,6 +144,46 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
     }
 
     return $user_is_group_admin;
+  }
+
+  /**
+   * Normalizes LDAP attributes from the request array into a plain array.
+   *
+   * @param array $attributes
+   *
+   * @return array
+   */
+  private function extractLdapAttributesFromRequest($attributes) {
+    // Not including objectClass items. Don't need them.
+    $ldap_attributes = [
+      'cn',
+      'gidNumber',
+      'homeDirectory',
+      'sn',
+      'uid',
+      'uidNumber',
+      'displayName',
+      'employeeType',
+      'gecos',
+      'givenName',
+      'loginShell',
+      'mail',
+      'mobile',
+      'telephoneNumber',
+      'title',
+      'userPassword',
+    ];
+
+    $normalized = [];
+    foreach ($ldap_attributes as $attribute) {
+      if (isset($attributes[$attribute])) {
+        $normalized[$attribute] = is_array($attributes[$attribute])
+          ? $attributes[$attribute][0]
+          : $attributes[$attribute];
+      }
+    }
+
+    return $normalized;
   }
 
 }
