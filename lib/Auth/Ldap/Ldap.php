@@ -65,7 +65,7 @@ class Ldap {
   /**
    * @param \SimpleSAML_Configuration $config
    *
-   * @return \SimpleSAML\Module\CE2FA\Auth\Ldap\Ldap
+   * @return \CE2FA\Auth\Ldap\Ldap
    * @throws \Exception
    */
   public static function fromConfig(SimpleSAML_Configuration $config) {
