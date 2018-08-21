@@ -28,6 +28,8 @@ class Ldap {
 
   private $password;
 
+  private $client;
+
   /**
    * Ldap constructor.
    */
