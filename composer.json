@@ -19,5 +19,8 @@
 	},
 	"require" : {
 		"simplesamlphp/composer-module-installer" : "~1.1.5"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^7.3"
 	}
 }

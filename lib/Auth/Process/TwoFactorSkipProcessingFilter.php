@@ -3,6 +3,7 @@
 namespace SimpleSAML\Module\CE2FA\Auth\Process;
 
 use CE2FA\Auth\Ldap\Ldap;
+use SimpleSAML\Logger;
 use SimpleSAML_Auth_ProcessingFilter;
 
 /**
@@ -36,21 +37,29 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
   public function __construct($config, $reserved) {
     parent::__construct($config, $reserved);
 
-    $cfg = \SimpleSAML_Configuration::loadFromArray($config, 'ce2fa:2FA');
-    $this->filterEnabled = $cfg->getBoolean('proc_filter.enabled');
+    $this->filterEnabled = $config['proc_filter.enabled'] ?? FALSE;
 
     if ($this->filterEnabled) {
-      $this->initLdap($cfg);
+      $this->initLdap($config);
     }
   }
 
   /**
-   * @param \SimpleSAML_Configuration $config
+   * @param array $config
    *
    * @throws \Exception
    */
-  private function initLdap(\SimpleSAML_Configuration $config) {
-    $this->ldap = Ldap::fromConfig($config);
+  private function initLdap($config) {
+    $this->ldap = Ldap::fromConfigArray($config, new Logger());
+  }
+
+  /**
+   * Sets the Ldap class to use.
+   *
+   * @param \CE2FA\Auth\Ldap\Ldap $ldap
+   */
+  public function setLdap(Ldap $ldap) {
+    $this->ldap = $ldap;
   }
 
   /**
@@ -127,10 +136,11 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
       'objectClass' => 'posixGroup',
       'memberUid' => $username,
     ];
-    
+
     try {
       $ldap_groups = $this->ldap->searchformultiple('ou=Groups,dc=codeenigma,dc=com', $filter, ['cn']);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       // If groups can't be retrieved, assume user is not group admin.
       return FALSE;
     }
