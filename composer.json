@@ -17,10 +17,16 @@
 			"CE2FA\\": "lib"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"SimpleSAML\\Module\\CE2FA\\": "lib/"
+		}
+	},
 	"require" : {
 		"simplesamlphp/composer-module-installer" : "~1.1.5"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "^7.3"
+		"phpunit/phpunit": "^7.3",
+		"simplesamlphp/simplesamlphp": "~1.15-dev"
 	}
 }

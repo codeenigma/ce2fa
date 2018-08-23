@@ -55,3 +55,18 @@ in place but disable the filter temporarily.
 `'ldap.username'`: Not really needed for the moment.
 
 `'ldap.password'`: Not really needed for the moment.
+
+## Running tests
+
+Run `composer` install inside the module repository.
+
+From within the repository root, execute phpunit against the tests folder:
+
+```
+./vendor/bin/phpunit tests/
+```
+
+SimpleSAMLphp before 1.15 used to perform some assert() calls that are 
+deprecated and make phpunit fail. For such reason, `~1.15-dev` version of
+SimpleSAMLphp is required as a dev dependency. Executing tests with older
+versions could make them fail. 
