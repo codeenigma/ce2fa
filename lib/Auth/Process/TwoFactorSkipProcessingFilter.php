@@ -24,7 +24,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
   /**
    * @var boolean
    */
-  private $filterEnabled;
+  public $filterEnabled;
 
   /**
    * 2FA constructor.
@@ -49,7 +49,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    *
    * @throws \Exception
    */
-  private function initLdap($config) {
+  protected function initLdap($config) {
     $this->ldap = Ldap::fromConfigArray($config, new Logger());
   }
 
@@ -60,6 +60,15 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    */
   public function setLdap(Ldap $ldap) {
     $this->ldap = $ldap;
+  }
+
+  /**
+   * Returns the current Ldap class instance.
+   *
+   * @return Ldap
+   */
+  public function getLdap() {
+    return $this->ldap;
   }
 
   /**
@@ -96,7 +105,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    * @return bool
    *  true if the user should pass 2fa, false otherwise.
    */
-  private function userRequires2FA($username, $ldap_attributes) {
+  public function userRequires2FA($username, $ldap_attributes) {
     if ($this->userIsSuperUser($ldap_attributes)) {
       return TRUE;
     }
@@ -117,7 +126,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    * @return bool
    *  true if the user is a superuser, false otherwise.
    */
-  private function userIsSuperUser($ldap_attributes) {
+  public function userIsSuperUser($ldap_attributes) {
     return isset($ldap_attributes['employeeType']) && ($ldap_attributes['employeeType'] === 'superuser');
   }
 
@@ -130,7 +139,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    * @return bool
    *  true if the user is considered a group admin, false otherwise.
    */
-  private function userIsGroupAdmin($username) {
+  public function userIsGroupAdmin($username) {
     $user_is_group_admin = FALSE;
     $filter = [
       'objectClass' => 'posixGroup',
@@ -169,7 +178,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
    *
    * @return array
    */
-  private function extractLdapAttributesFromRequest($attributes) {
+  public function extractLdapAttributesFromRequest($attributes) {
     // Not including objectClass items. Don't need them.
     $ldap_attributes = [
       'cn',

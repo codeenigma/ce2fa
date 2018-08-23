@@ -1,6 +1,7 @@
 <?php
 
 use CE2FA\Auth\Ldap\Ldap;
+use CE2FA\Util\SpyLogger;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,27 +30,7 @@ class LdapTest extends TestCase {
     $logger = new SpyLogger();
     $ldap = Ldap::fromConfigArray($config, $logger);
     $this->assertInstanceOf(SpyLogger::class, $ldap->logger);
-    $this->assertTrue($ldap->logger::$debugCalled);
+    $this->assertTrue($ldap->logger::$debugCalled, 'Ldap constructor calls debug function.');
   }
-
-}
-
-/**
- * Class FakeLogger
- */
-class SpyLogger {
-
-  public static $debugCalled;
-
-  public static function debug($string) {
-    self::$debugCalled = TRUE;
-    return;
-  }
-
-  public static function warning($string) {}
-
-  public static function error($string) {}
-
-  public static function info($string) {}
 
 }
