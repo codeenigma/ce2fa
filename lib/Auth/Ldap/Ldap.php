@@ -30,7 +30,6 @@ class Ldap extends SimpleSAML_Auth_LDAP {
 
   public $ldap;
 
-
   /**
    * Ldap constructor.
    *
