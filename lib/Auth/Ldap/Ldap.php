@@ -30,6 +30,7 @@ class Ldap extends SimpleSAML_Auth_LDAP {
 
   public $ldap;
 
+
   /**
    * Ldap constructor.
    *
@@ -38,7 +39,7 @@ class Ldap extends SimpleSAML_Auth_LDAP {
    *
    * @see parent::__construct().
    */
-  public function __construct($hostname, $port, $enable_tls, $debug, $referrals, $timeout, $logger) {
+  public function __construct($hostname, $port, $enable_tls, $debug, $referrals, $timeout, $logger, $dn = '', $password = '') {
     $this->hostname   = $hostname;
     $this->port       = $port;
     $this->enable_tls = $enable_tls;
@@ -63,7 +64,7 @@ class Ldap extends SimpleSAML_Auth_LDAP {
       $this->logger::warning('Library - LDAP __construct(): Unable to set debug level (LDAP_OPT_DEBUG_LEVEL) to 7');
     }
 
-    $this->setUpLdap($hostname, $port, $enable_tls, $referrals, $timeout);
+    $this->setUpLdap($hostname, $port, $enable_tls, $referrals, $timeout, $dn, $password);
   }
 
   /**
@@ -159,6 +160,8 @@ class Ldap extends SimpleSAML_Auth_LDAP {
     $debug      = $config['ldap.debug'] ?? FALSE;
     $referrals  = $config['ldap.referrals'] ?? TRUE;
     $timeout    = $config['ldap.timeout'] ?? 0;
+    $dn         = $config['ldap.username'] ?? '';
+    $password   = $config['ldap.password'] ?? '';
 
     return new self(
       $hostname,
@@ -167,7 +170,9 @@ class Ldap extends SimpleSAML_Auth_LDAP {
       $debug,
       $referrals,
       $timeout,
-      $logger
+      $logger,
+      $dn,
+      $password
     );
   }
 
@@ -185,7 +190,7 @@ class Ldap extends SimpleSAML_Auth_LDAP {
    *
    * @throws \Exception
    */
-  private function setUpLdap($hostname, $port, $enable_tls, $referrals, $timeout): void {
+  private function setUpLdap($hostname, $port, $enable_tls, $referrals, $timeout, $dn = '', $password = ''): void {
     // Prepare a connection for to this LDAP server. Note that this function
     // doesn't actually connect to the server.
     $this->ldap = @ldap_connect($hostname, $port);
@@ -219,6 +224,13 @@ class Ldap extends SimpleSAML_Auth_LDAP {
     if (stripos($hostname, "ldaps:") === FALSE && $enable_tls) {
       if (!@ldap_start_tls($this->ldap)) {
         throw $this->makeException('Library - LDAP __construct(): Unable to force TLS', ERR_INTERNAL);
+      }
+    }
+
+    // Bind, if we've been provided with credentials.
+    if (!empty($dn) && !empty($password)) {
+      if (@ldap_bind($this->ldap, $dn, $password) === FALSE) {
+        throw $this->makeException('Library - LDAP __construct(): Unable to bind with supplied credentials', ERR_WRONG_PW);
       }
     }
   }
