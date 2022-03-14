@@ -27,6 +27,6 @@
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^7.3",
-		"simplesamlphp/simplesamlphp": "~1.15-dev"
+		"simplesamlphp/simplesamlphp": "~1.17.7"
 	}
 }

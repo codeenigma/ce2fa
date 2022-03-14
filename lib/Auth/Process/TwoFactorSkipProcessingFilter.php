@@ -4,7 +4,7 @@ namespace SimpleSAML\Module\CE2FA\Auth\Process;
 
 use CE2FA\Auth\Ldap\Ldap;
 use SimpleSAML\Logger;
-use SimpleSAML_Auth_ProcessingFilter;
+use SimpleSAML\Auth\ProcessingFilter;
 
 /**
  * Filter to manipulate request in order to enforce the user to pass 2fa.
@@ -12,9 +12,11 @@ use SimpleSAML_Auth_ProcessingFilter;
  * @author Salvador Molina <salva.momo@gmail.com>
  * @package SimpleSAMLphp
  */
-class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
+class TwoFactorSkipProcessingFilter extends ProcessingFilter {
 
   const AdminGroupSuffix = 'Admins';
+
+  const OTP_SKIP_FLAG = 'sspmod_linotp2_Auth_Process_OTP';
 
   /**
    * @var \CE2FA\Auth\Ldap\Ldap
@@ -85,7 +87,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
       $username = $ldap_attributes['uid'];
 
       if ($this->userRequires2FA($username, $ldap_attributes) === FALSE) {
-        $request['sspmod_linotp2_Auth_Process_OTP'] = [
+        $request[self::OTP_SKIP_FLAG] = [
           'skip_check' => TRUE,
         ];
       }
