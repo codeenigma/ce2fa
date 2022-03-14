@@ -4,7 +4,7 @@ namespace SimpleSAML\Module\CE2FA\Auth\Process;
 
 use CE2FA\Auth\Ldap\Ldap;
 use SimpleSAML\Logger;
-use SimpleSAML_Auth_ProcessingFilter;
+use SimpleSAML\Auth\ProcessingFilter;
 
 /**
  * Filter to manipulate request in order to enforce the user to pass 2fa.
@@ -12,7 +12,7 @@ use SimpleSAML_Auth_ProcessingFilter;
  * @author Salvador Molina <salva.momo@gmail.com>
  * @package SimpleSAMLphp
  */
-class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
+class TwoFactorSkipProcessingFilter extends ProcessingFilter {
 
   const AdminGroupSuffix = 'Admins';
 

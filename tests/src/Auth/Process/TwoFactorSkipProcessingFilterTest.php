@@ -164,6 +164,9 @@ class TwoFactorSkipProcessingFilterTest extends TestCase {
    * @test
    */
   public function testProcessSetsRightFlagInRequestArray() {
+    // Set the configuration environment variable to point to a test config file.
+    putenv("SIMPLESAMLPHP_CONFIG_DIR=./tests/config/");
+
     $filter = new TwoFactorSkipProcessingFilter([], NULL);
     $ldap = Ldap::fromConfigArray(['ldap.hostname' => 'dummy'], new SpyLogger());
     $filter->setLdap($ldap);
@@ -173,7 +176,7 @@ class TwoFactorSkipProcessingFilterTest extends TestCase {
       'Attributes' => ['uid' => 'someuid', 'employeeType' => 'non-superuser']
     ];
     $filter->process($request_normal_u);
-    $this->assertTrue($request_normal_u['OTP']['skip_check'], 'linotp2 key correctly set for normal user.');
+    $this->assertTrue($request_normal_u[TwoFactorSkipProcessingFilter::OTP_SKIP_FLAG]['skip_check'], 'linotp2 key correctly set for normal user.');
 
     $request_superuser = [
       'Attributes' => ['uid' => 'someuid', 'employeeType' => 'superuser']
