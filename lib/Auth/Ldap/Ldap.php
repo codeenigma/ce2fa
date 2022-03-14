@@ -3,16 +3,16 @@
 namespace CE2FA\Auth\Ldap;
 
 use Exception;
-use SimpleSAML_Auth_LDAP;
-use SimpleSAML_Error_AuthSource;
-use SimpleSAML_Error_Exception;
-use SimpleSAML_Error_InvalidCredential;
-use SimpleSAML_Error_UserNotFound;
+use SimpleSAML\Auth\LDAP as SimpleSAMLLdap;
+use SimpleSAML\Error\AuthSource;
+use SimpleSAML\Error\Exception as SimpleSAMLException;
+use SimpleSAML\Error\InvalidCredential;
+use SimpleSAML\Error\UserNotFound;
 
 /**
  * Class Ldap
  */
-class Ldap extends SimpleSAML_Auth_LDAP {
+class Ldap extends SimpleSAMLLdap {
 
   protected $hostname;
 
@@ -73,7 +73,7 @@ class Ldap extends SimpleSAML_Auth_LDAP {
    * @param string $description
    * The exception's description
    *
-   * @return Exception
+   * @return \Exception
    */
   private function makeException($description, $type = NULL) {
     $errNo = 0x00;
@@ -98,15 +98,15 @@ class Ldap extends SimpleSAML_Auth_LDAP {
 
       switch ($type) {
         case ERR_INTERNAL:// 1 - ExInternal
-          return new SimpleSAML_Error_Exception($description, $errNo);
+          return new SimpleSAMLException($description, $errNo);
         case ERR_NO_USER:// 2 - ExUserNotFound
-          return new SimpleSAML_Error_UserNotFound($description, $errNo);
+          return new UserNotFound($description, $errNo);
         case ERR_WRONG_PW:// 3 - ExInvalidCredential
-          return new SimpleSAML_Error_InvalidCredential($description, $errNo);
+          return new InvalidCredential($description, $errNo);
         case ERR_AS_DATA_INCONSIST:// 4 - ExAsDataInconsist
-          return new SimpleSAML_Error_AuthSource('ldap', $description);
+          return new AuthSource('ldap', $description);
         case ERR_AS_INTERNAL:// 5 - ExAsInternal
-          return new SimpleSAML_Error_AuthSource('ldap', $description);
+          return new AuthSource('ldap', $description);
       }
     }
     else {
@@ -119,16 +119,16 @@ class Ldap extends SimpleSAML_Auth_LDAP {
       switch ($errNo) {
         case 0x20://LDAP_NO_SUCH_OBJECT
           $this->logger::warning($description);
-          return new SimpleSAML_Error_UserNotFound($description, $errNo);
+          return new UserNotFound($description, $errNo);
         case 0x31://LDAP_INVALID_CREDENTIALS
           $this->logger::info($description);
-          return new SimpleSAML_Error_InvalidCredential($description, $errNo);
+          return new InvalidCredential($description, $errNo);
         case -1://NO_SERVER_CONNECTION
           $this->logger::error($description);
-          return new SimpleSAML_Error_AuthSource('ldap', $description);
+          return new AuthSource('ldap', $description);
         default:
           $this->logger::error($description);
-          return new SimpleSAML_Error_AuthSource('ldap', $description);
+          return new AuthSource('ldap', $description);
       }
     }
   }

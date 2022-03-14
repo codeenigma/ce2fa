@@ -16,6 +16,8 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
 
   const AdminGroupSuffix = 'Admins';
 
+  const OTP_SKIP_FLAG = 'sspmod_linotp2_Auth_Process_OTP';
+
   /**
    * @var \CE2FA\Auth\Ldap\Ldap
    */
@@ -85,7 +87,7 @@ class TwoFactorSkipProcessingFilter extends SimpleSAML_Auth_ProcessingFilter {
       $username = $ldap_attributes['uid'];
 
       if ($this->userRequires2FA($username, $ldap_attributes) === FALSE) {
-        $request['sspmod_linotp2_Auth_Process_OTP'] = [
+        $request[self::OTP_SKIP_FLAG] = [
           'skip_check' => TRUE,
         ];
       }

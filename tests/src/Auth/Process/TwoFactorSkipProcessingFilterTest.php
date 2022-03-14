@@ -173,13 +173,13 @@ class TwoFactorSkipProcessingFilterTest extends TestCase {
       'Attributes' => ['uid' => 'someuid', 'employeeType' => 'non-superuser']
     ];
     $filter->process($request_normal_u);
-    $this->assertTrue($request_normal_u['sspmod_linotp2_Auth_Process_OTP']['skip_check'], 'linotp2 key correctly set for normal user.');
+    $this->assertTrue($request_normal_u['OTP']['skip_check'], 'linotp2 key correctly set for normal user.');
 
     $request_superuser = [
       'Attributes' => ['uid' => 'someuid', 'employeeType' => 'superuser']
     ];
     $filter->process($request_superuser);
-    $this->assertArrayNotHasKey('sspmod_linotp2_Auth_Process_OTP', $request_superuser, 'linotp2 key not set for superuser.');
+    $this->assertArrayNotHasKey(TwoFactorSkipProcessingFilter::OTP_SKIP_FLAG, $request_superuser, 'linotp2 key not set for superuser.');
   }
 
 }

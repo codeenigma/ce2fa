@@ -11,7 +11,7 @@ At the moment, the logic allows to skip 2FA for normal users in the CE's LDAP,
 while enforcing 2FA for users considered "Group Administrators" or "Superusers".
 
 ```
-  $request['sspmod_linotp2_Auth_Process_OTP'] = [
+  $request[SimpleSAML\Module\CE2FA\Auth\Process\TwoFactorSkipProcessingFilter::OTP_SKIP_FLAG] = [
     'skip_check' => TRUE,
   ];
 ```
